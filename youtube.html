@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<link rel="stylesheet" href="https://bootswatch.com/4/yeti/bootstrap.min.css">
+	<style>
+	.box{width: 30%; height: 200px;  float: left;}
+	iframe{border: 1px solid #ccc;}
+	img{cursor: pointer;}
+</style>
+</head>
+<body>
+	<div class="container mt-5 text-center">
+		<h1>Youtube Data Api</h1>
+		<div id="results" class="row"></div>
+	</div>
+	<script>
+		var channelName = 'TechGuyWeb';
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', 'https://www.googleapis.com/youtube/v3/channels?part=contentDetails&forUsername='+channelName+'&key=AIzaSyCHlqUoujCiH_XrpTthqSvQKGG-KwEeqlc', true);
+		xhr.onload = function(data){
+			var data = this.responseText;
+			var responseData = JSON.parse(data);
+			var results = document.getElementById('results');
+			if(this.status == 200){
+			//console.log(responseData);
+			responseData.items.forEach(function(item, index){
+				var video = item.contentDetails.relatedPlaylists.uploads;
+				getVideo(video);
+			});
+		}
+	}
+	xhr.send();
+	function getVideo(video){
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', 'https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,id&maxResults=10&playlistId='+video+'&key=AIzaSyCHlqUoujCiH_XrpTthqSvQKGG-KwEeqlc', true);
+		xhr.onload = function(data){
+			var data = this.responseText;
+			var responseData = JSON.parse(data);
+			var results = document.getElementById('results');
+			console.log(responseData);
+			if(this.status == 200){
+				responseData.items.forEach(function(item, index){
+					var videoid = item.snippet.resourceId.videoId;	
+					var thumb = item.snippet.thumbnails.medium;
+					
+					
+					// results.innerHTML += '<div class="col-sm-4 mt-4"><iframe src=\"//www.youtube.com/embed/' +videoid + '\"></iframe></div>';
+					results.innerHTML += '<div class="col-sm-4 mt-5"><img src="' + thumb.url + '"' + 'width="' + thumb.width + '"' + 'height="' + thumb.height + '" ' + 'data-video="' + videoid + '" onclick="fullscreen()"></div>';
+
+				});
+			}
+		}
+		xhr.send();
+	}
+
+	
+	function fullscreen(){
+		if (!Element.prototype.requestFullscreen) {
+			Element.prototype.requestFullscreen = Element.prototype.mozRequestFullscreen || Element.prototype.webkitRequestFullscreen || Element.prototype.msRequestFullscreen;
+		}
+
+		var videoId = event.target.getAttribute('data-video');
+		if (!videoId) return;
+		var iframe = document.createElement('div');
+		iframe.innerHTML = '<p>x</p><iframe width="320" height="180" src="https://www.youtube.com/embed/' + videoId + '?rel=0&autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+		var video = iframe.childNodes[1];
+
+		// Replace the image with the video
+		event.target.parentNode.replaceChild(video, event.target);
+
+		// Enter fullscreen mode
+		video.requestFullscreen();
+}
+
+
+</script>
+</body>
+</html>
